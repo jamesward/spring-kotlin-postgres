@@ -1,0 +1,66 @@
+steps:
+  - id: 'restore-cache'
+    name: 'us-docker.pkg.dev/vargolabs/gcs-cacher/gcs-cacher:0.1.3'
+    args:
+      - '-bucket=$PROJECT_ID-$REPO_NAME-cloudbuild-cache'
+      - '-restore=gradle-{{ hashGlob "build.gradle.kts" }}'
+      - '-dir=/home/.gradle'
+      - '-allow-failure'
+    volumes:
+      - name: 'gradle'
+        path: '/home/.gradle'
+
+  - id: 'test'
+    name: 'gcr.io/distroless/java:8-debug'
+    entrypoint: '/busybox/sh'
+    args:
+      - -c
+      - |
+        ln -s /busybox/env /usr/bin/env
+        /workspace/gradlew --console=plain --no-daemon --gradle-user-home=/home/.gradle test
+    volumes:
+      - name: 'gradle'
+        path: '/home/.gradle'
+
+  - id: 'build-image'
+    name: 'gcr.io/distroless/java:8-debug'
+    entrypoint: '/busybox/sh'
+    args:
+      - -c
+      - |
+        ln -s /busybox/env /usr/bin/env
+        /workspace/gradlew --console=plain --no-daemon --gradle-user-home=/home/.gradle bootBuildImage --imageName=gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA
+    volumes:
+      - name: 'gradle'
+        path: '/home/.gradle'
+
+  - id: 'push'
+    name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA']
+
+  - id: 'save-cache'
+    name: 'us-docker.pkg.dev/vargolabs/gcs-cacher/gcs-cacher:0.1.3'
+    args:
+      - '-bucket=$PROJECT_ID-$REPO_NAME-cloudbuild-cache'
+      - '-cache=gradle-{{ hashGlob "build.gradle.kts" }}'
+      - '-dir=/home/.gradle'
+    volumes:
+      - name: 'gradle'
+        path: '/home/.gradle'
+
+  - id: 'deploy'
+    name: ghcr.io/jamesward/easycloudrun
+    entrypoint: vpcsql
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
+      - 'IMAGE_NAME=$REPO_NAME'
+      - 'IMAGE_VERSION=$COMMIT_SHA'
+      - 'DEPLOY_OPTS=--update-env-vars=SPRING_PROFILES_ACTIVE=prod'
+      - 'REGION=us-central1'
+      - 'DB_VERSION=POSTGRES_13'
+      - 'DB_TIER=db-f1-micro'
+      - 'DB_INIT_ARGS=init'
+
+images: ['gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA']
+
+timeout: 30m
