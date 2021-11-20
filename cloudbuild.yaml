@@ -57,6 +57,7 @@ steps:
       - 'COMMIT_SHA=$COMMIT_SHA'
       - 'IMAGE_NAME=$REPO_NAME'
       - 'IMAGE_VERSION=$COMMIT_SHA'
+      - 'ROLES=roles/cloudsql.client,roles/logging.logEntries.create'
       - 'DEPLOY_OPTS=--update-env-vars=SPRING_PROFILES_ACTIVE=prod'
       - 'REGION=us-west1'
       - 'DB_VERSION=POSTGRES_13'
