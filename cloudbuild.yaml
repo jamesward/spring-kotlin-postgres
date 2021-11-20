@@ -56,7 +56,7 @@ steps:
       - 'IMAGE_NAME=$REPO_NAME'
       - 'IMAGE_VERSION=$COMMIT_SHA'
       - 'DEPLOY_OPTS=--update-env-vars=SPRING_PROFILES_ACTIVE=prod'
-      - 'REGION=us-central1'
+      - 'REGION=us-west1'
       - 'DB_VERSION=POSTGRES_13'
       - 'DB_TIER=db-f1-micro'
       - 'DB_INIT_ARGS=init'
