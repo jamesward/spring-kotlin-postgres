@@ -17,6 +17,8 @@ steps:
       - -c
       - |
         ln -s /busybox/env /usr/bin/env
+        ls -al .
+        ls -al /workspace
         ./gradlew --console=plain --no-daemon --gradle-user-home=/home/.gradle test
     volumes:
       - name: 'gradle'
