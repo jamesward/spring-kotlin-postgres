@@ -17,7 +17,7 @@ steps:
       - -c
       - |
         ln -s /busybox/env /usr/bin/env
-        /workspace/gradlew --console=plain --no-daemon --gradle-user-home=/home/.gradle test
+        ./gradlew --console=plain --no-daemon --gradle-user-home=/home/.gradle test
     volumes:
       - name: 'gradle'
         path: '/home/.gradle'
@@ -29,7 +29,7 @@ steps:
       - -c
       - |
         ln -s /busybox/env /usr/bin/env
-        /workspace/gradlew --console=plain --no-daemon --gradle-user-home=/home/.gradle bootBuildImage --imageName=gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA
+        ./gradlew --console=plain --no-daemon --gradle-user-home=/home/.gradle bootBuildImage --imageName=gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA
     volumes:
       - name: 'gradle'
         path: '/home/.gradle'
