@@ -59,9 +59,9 @@ steps:
       - 'IMAGE_VERSION=$COMMIT_SHA'
       - 'ROLES=roles/cloudsql.client,roles/logging.logWriter,roles/browser,roles/monitoring.editor'
       - 'DEPLOY_OPTS=--update-env-vars=SPRING_PROFILES_ACTIVE=prod'
-      - 'REGION=us-west1'
+      - 'REGION=us-east1'
       - 'DB_VERSION=POSTGRES_13'
-      - 'DB_TIER=db-f1-micro'
+      - 'DB_TIER=db-n1-standard-1'
       - 'DB_INIT_ARGS=init'
 
 images: ['gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA']
