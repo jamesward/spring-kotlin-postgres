@@ -19,9 +19,6 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
-    runtimeOnly("com.google.cloud:spring-cloud-gcp-starter-metrics:2.0.5")
-    runtimeOnly("com.google.cloud:spring-cloud-gcp-logging:2.0.5")
-
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
