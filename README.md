@@ -34,7 +34,8 @@ docker run -it --network host \
   -eSPRING_R2DBC_USERNAME=postgres \
   -eSPRING_R2DBC_PASSWORD=password \
   spring-kotlin-postgres \
-  init
+  init \
+  --spring.main.web-application-type=none
 
 # psql
 docker exec -it my-postgres psql -U postgres

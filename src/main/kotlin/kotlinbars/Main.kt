@@ -2,21 +2,20 @@ package kotlinbars
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
-import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.core.io.Resource
 import org.springframework.data.annotation.Id
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.nativex.hint.TypeHint
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.await
+import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -29,6 +28,11 @@ data class Bar(@Id val id: Long?, val name: String)
 
 interface BarRepo : CoroutineCrudRepository<Bar, Long>
 
+// note: bug workarounds (ie typehints missing in Spring)
+@TypeHint(typeNames = [
+    "org.springframework.boot.sql.init.dependency.DatabaseInitializationDependencyConfigurer\$DependsOnDatabaseInitializationPostProcessor",
+    "org.springframework.boot.context.properties.ConfigurationPropertiesBinder\$Factory",
+])
 @SpringBootApplication
 @RestController
 class WebApp(val barRepo: BarRepo) {
@@ -41,28 +45,23 @@ class WebApp(val barRepo: BarRepo) {
     @PostMapping("/bars")
     suspend fun addBar(@RequestBody bar: Bar): ResponseEntity<Unit> {
         barRepo.save(bar)
-        return ResponseEntity<Unit>(HttpStatus.NO_CONTENT)
+        return ResponseEntity(HttpStatus.NO_CONTENT)
     }
 
 }
 
-@Configuration(proxyBeanMethods = false)
-class InitConfiguration {
+@Component
+class InitDB(val databaseClient: DatabaseClient, @Value("classpath:init.sql") val initSql: Resource) : CommandLineRunner {
 
-    companion object {
-        fun initDb(databaseClient: DatabaseClient, initSql: Resource) {
+    private val logger = LoggerFactory.getLogger(InitDB::class.java)
+
+    override fun run(vararg args: String?) {
+        if (args.contains("init")) {
+            logger.info("Init DB Schema")
             val lines = initSql.inputStream.bufferedReader().use { it.readText() }
             runBlocking {
                 databaseClient.sql(lines).await()
             }
-        }
-    }
-
-    @Bean
-    @Profile("init")
-    fun commandLineRunner(databaseClient: DatabaseClient, @Value("classpath:init.sql") initSql: Resource): CommandLineRunner {
-        return CommandLineRunner {
-           initDb(databaseClient, initSql)
         }
     }
 
@@ -79,12 +78,6 @@ fun main(args: Array<String>) {
     }
 
     runApplication<WebApp>(*args) {
-        if (args.contains("init")) {
-            webApplicationType = WebApplicationType.NONE
-            setAdditionalProfiles("init")
-            props["spring.devtools.add-properties"] = false
-            props["spring.devtools.livereload.enabled"] = false
-        }
         setDefaultProperties(props)
     }
 }
