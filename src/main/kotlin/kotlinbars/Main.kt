@@ -1,9 +1,7 @@
 package kotlinbars
 
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.WebApplicationType
@@ -14,7 +12,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.Resource
 import org.springframework.data.annotation.Id
-import org.springframework.data.repository.reactive.ReactiveCrudRepository
+import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.r2dbc.core.DatabaseClient
@@ -24,34 +22,26 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
-import java.util.*
+import java.util.Properties
 
 
 data class Bar(@Id val id: Long?, val name: String)
 
-interface BarRepo : ReactiveCrudRepository<Bar, Long>
+interface BarRepo : CoroutineCrudRepository<Bar, Long>
 
 @SpringBootApplication
 @RestController
 class WebApp(val barRepo: BarRepo) {
 
-    val logger = LoggerFactory.getLogger(WebApp::class.java)
-
     @GetMapping("/bars")
-    suspend fun getBars(): List<Bar> {
-        return barRepo.findAll().collectList().awaitFirst()
+    suspend fun getBars(): Flow<Bar> {
+        return barRepo.findAll()
     }
 
     @PostMapping("/bars")
-    suspend fun addBar(@RequestBody bar: Bar) = run {
-        barRepo.save(bar).awaitFirstOrNull()?.let {
-            ResponseEntity<Unit>(HttpStatus.NO_CONTENT)
-        } ?: ResponseEntity<Unit>(HttpStatus.INTERNAL_SERVER_ERROR)
-    }
-
-    @GetMapping("/error")
-    fun error() = run {
-        logger.error("An Error")
+    suspend fun addBar(@RequestBody bar: Bar): ResponseEntity<Unit> {
+        barRepo.save(bar)
+        return ResponseEntity<Unit>(HttpStatus.NO_CONTENT)
     }
 
 }

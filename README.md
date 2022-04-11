@@ -4,12 +4,24 @@
 
 ## Local Dev
 
-Run the server:
+Start the server:
 ```
 ./gradlew bootRun
 ```
 
-[http://localhost:8080/bars](http://localhost:8080/bars)
+Use the server:
+```
+# Create a "bar"
+curl -v -X POST localhost:8080/bars -H 'Content-Type: application/json' -d '{"name": "Test"}'
+
+# Get the "bars"
+curl localhost:8080/bars
+```
+
+Run the tests:
+```
+./gradlew test
+```
 
 Create container & run with docker:
 ```

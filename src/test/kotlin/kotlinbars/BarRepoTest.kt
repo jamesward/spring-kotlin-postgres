@@ -1,6 +1,7 @@
 package kotlinbars
 
-import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -12,10 +13,10 @@ class BarRepoTest(@Autowired val barRepo: BarRepo) {
 
     @Test
     fun `barRepo works`(): Unit = runBlocking {
-        barRepo.save(Bar(null, "foo")).awaitFirst()
+        barRepo.save(Bar(null, "foo"))
 
-        val bars = barRepo.findAll().collectList().awaitFirst()
-        assertThat(bars.size).isEqualTo(1)
+        val bars = barRepo.findAll()
+        assertThat(bars.count()).isEqualTo(1)
         assertThat(bars.first().id).isNotNull
     }
 
