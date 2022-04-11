@@ -58,7 +58,6 @@ steps:
       - 'IMAGE_NAME=$REPO_NAME'
       - 'IMAGE_VERSION=$COMMIT_SHA'
       - 'ROLES=roles/cloudsql.client,roles/logging.logWriter,roles/browser,roles/monitoring.editor'
-      - 'DEPLOY_OPTS=--update-env-vars=SPRING_PROFILES_ACTIVE=prod'
       - 'REGION=us-west2'
       - 'DB_VERSION=POSTGRES_13'
       - 'DB_TIER=db-g1-small'
